@@ -399,7 +399,7 @@ async function greetNewMember(member, botGuild) {
             }
         });
     }
-    // if verification is off, then just ive member role
+    // if verification is off, then just give member role
     else {
         discordServices.addRoleToMember(member, botGuild.roleIDs.memberRole);
     }

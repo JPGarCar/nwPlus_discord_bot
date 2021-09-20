@@ -59,7 +59,7 @@ class InitBot extends Command {
         await new Promise((resolve) => setTimeout(resolve, 15000));
 
         // grab the admin role
-        const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369');
+        const adminRole = await this.askOrCreate('admin', channel, userId, guild, '#008369', 'This role will have the administrator permission. Careful who you give this to!');
         addRoleToMember(message.member, adminRole);
 
         // create the admin channel room
@@ -88,11 +88,11 @@ class InitBot extends Command {
         await new Promise((resolve) => setTimeout(resolve, 15000));
 
         // grab the staff role
-        const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166');
+        const staffRole = await this.askOrCreate('staff', channel, userId, guild, '#00D166', 'This role will have all permissions except the administrator permission.');
         adminConsole.addField('The staff role:', `<@&${staffRole.id}>`);
 
         // get the regular member, this role will have the general member permissions
-        const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798');
+        const memberRole = await this.askOrCreate('member', channel, userId, guild, '#006798', 'This role will be given to all users when they either join the server, or verify.');
         adminConsole.addField('The member role:', `<@&${memberRole.id}>`);
 
         // bot support channel prompt
@@ -126,7 +126,9 @@ class InitBot extends Command {
             // ask for guest role
             var guestRole = await this.askOrCreate('guest', channel, userId, guild, '#969C9F');
 
-            let infoMsg = await sendMsgToChannel(channel, userId, 'I need to know what types to verify when a user tries to verify. Please follow the instructions, it will let you add as many types as you wish.');
+            let infoMsg = await sendMsgToChannel(channel, userId, `I need to know what types to verify when a user tries to verify. \
+            Please follow the instructions, it will let you add as many types as you wish. The ${memberRole.name} role will be added to all users who validate correctly! \
+            You will have to create the new roles yourself! Do this before adding them as a verification type.`);
 
             let types = await this.getVerificationTypes(channel, userId);
             infoMsg.delete();
@@ -297,12 +299,13 @@ class InitBot extends Command {
      * @param {Snowflake} userId - the user id to prompt to 
      * @param {Guild} guild - the current guild
      * @param {ColorResolvable} - the role color
+     * @param {String} extraText - any extra text to add to the prompt
      * @async
      * @returns {Promise<Role>}
      */
-    async askOrCreate(roleName, channel, userId, guild, color) {
+    async askOrCreate(roleName, channel, userId, guild, color, extraText) {
         try {
-            let hasRole = await SpecialPrompt.boolean({ prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work.', channel, userId });
+            let hasRole = await SpecialPrompt.boolean({ prompt: 'Have you created the ' + roleName + ' role? You can go ahead and create it if you wish, or let me do the hard work. ' + extraText, channel, userId });
             if (hasRole) {
                 return await RolePrompt.single({ prompt: 'What is the ' + roleName + ' role?', channel, userId });
             } else {
