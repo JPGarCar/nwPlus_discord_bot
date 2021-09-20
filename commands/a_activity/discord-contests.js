@@ -123,7 +123,7 @@ class DiscordContests extends PermissionCommand {
 
         //starts the interval, and sends the first question immediately if startNow is true
         if (startNow) {
-            sendQuestion();
+            sendQuestion(this.botGuild);
         }
         interval = setInterval(sendQuestion, timeInterval);
 
@@ -132,13 +132,13 @@ class DiscordContests extends PermissionCommand {
          * against the answer(s) or receives the winner from Staff. Once it reaches the end it will notify Staff in the Logs channel and
          * list all the winners in order.
          */
-        async function sendQuestion() {
+        async function sendQuestion(botGuild) {
             //get question's parameters from db 
             var data = await getQuestion(message.guild.id);
             
             //sends results to Staff after all questions have been asked and stops looping
             if (data === null) {
-                discordLog(message.guild, '<@&' + this.botGuild.roleIDs.staffRole + '> Discord contests have ended! Winners are: <@' + winners.join('> <@') + '>');
+                discordLog(message.guild, '<@&' + botGuild.roleIDs.staffRole + '> Discord contests have ended for guild ' + message.guild.id + ' ! Winners are: <@' + winners.join('> <@') + '>');
                 clearInterval(interval);
                 return;
             }
@@ -148,17 +148,17 @@ class DiscordContests extends PermissionCommand {
             let needAllAnswers = data.needAllAnswers;
 
             const qEmbed = new MessageEmbed()
-                .setColor(this.botGuild.colors.embedColor)
+                .setColor(botGuild.colors.embedColor)
                 .setTitle('A new Discord Contest Question:')
                 .setDescription(question + '\n' + ((answers.length === 0) ? 'Staff: click the 👑 emoji to announce a winner!' : 
                     'Exact answers only!'));
 
 
-            message.channel.send('<@&' + roleId + '>' + ((answers.length === 0) ? (' - <@&' + this.botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
+            message.channel.send('<@&' + roleId + '>' + ((answers.length === 0) ? (' - <@&' + botGuild.roleIDs.staffRole + '> Need manual review!') : ''), { embed: qEmbed }).then((msg) => {
                 if (answers.length === 0) {
                     msg.react('👑');
 
-                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && checkForRole(message.guild.member(user), this.botGuild.roleIDs.staffRole);
+                    const emojiFilter = (reaction, user) => !user.bot && (reaction.emoji.name === '👑') && checkForRole(message.guild.member(user), botGuild.roleIDs.staffRole);
                     const emojiCollector = msg.createReactionCollector(emojiFilter);
 
                     emojiCollector.on('collect', (reaction, user) => {

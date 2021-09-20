@@ -19,6 +19,7 @@
   "license": "SEE LICENSE IN ./LICENSE",
   "homepage": "https://github.com/nwplus/Factotum",
   "dependencies": {
+    "@google-cloud/firestore": "^4.15.1",
     "advanced-discord.js-prompts": "^1.7.0",
     "csv-parser": "^3.0.0",
     "discord.js": "^12.5.3",
