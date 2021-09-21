@@ -128,7 +128,7 @@ class InitBot extends Command {
 
             let infoMsg = await sendMsgToChannel(channel, userId, 'I need to know what types to verify when a user tries to verify. Please follow the instructions, it will let you add as many types as you wish.');
 
-            let types = await this.getVerificationTypes(channel, userId);
+            let types = await this.getVerificationTypes(channel, userId, guestRole, memberRole);
             infoMsg.delete();
             await botGuild.setUpVerification(this.client, guestRole.id, types);
 
@@ -268,17 +268,11 @@ class InitBot extends Command {
      * @returns {Promise<TypeInfo[]>}
      * @async
      */
-    async getVerificationTypes(channel, userId) {
-        let typeMsg = await MessagePrompt.prompt({
-            prompt: `Please tell me the type and mention the role for a verification option. 
-            For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId
-        });
-        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/, ''); // clean out any snowflakes
-        type = type.toLowerCase().trim();
-        let role = typeMsg.mentions.roles.first();
+    async getVerificationTypes(channel, userId, guestRole, memberRole) {
+        let {type, role} = await this.getValidVerificationTypes(channel, userId, guestRole, memberRole);
 
         if (await SpecialPrompt.boolean({ prompt: 'Would you like to add another verification option?', channel, userId })) {
-            return (await this.getVerificationTypes(channel, userId)).concat([{
+            return (await this.getVerificationTypes(channel, userId, guestRole, memberRole)).concat([{
                 type: type,
                 roleId: role.id,
             }]);
@@ -288,6 +282,23 @@ class InitBot extends Command {
                 roleId: role.id,
             }];
         }
+    }
+
+    async getValidVerificationTypes(channel, userId, guestRole, memberRole) {
+        let typeMsg = await MessagePrompt.prompt({
+            prompt: `Please tell me the type and mention the role for a verification option. 
+            For example: hacker @hacker . Make sure you add nothing more to the message!`, channel, userId
+        });
+        let type = typeMsg.content.replace(/<(@&?|#)[a-z0-9]*>/, ''); // clean out any snowflakes
+        type = type.toLowerCase().trim();
+        let role = typeMsg.mentions.roles.first();
+
+        if (role.id === guestRole.id || role.id === memberRole.id) {
+            sendMsgToChannel(channel, userId, 'Guest and member roles cannot be used for verification. ' +
+                'Please try again.', 30);
+            await this.getValidVerificationTypes(channel, userId, guestRole, memberRole);
+        }
+        return {type, role};
     }
 
     /**
