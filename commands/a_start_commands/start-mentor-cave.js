@@ -548,6 +548,8 @@ function makeSelectMenuRow() {
             new MessageSelectMenu()
                 .setCustomId('ticketType')
                 .addOptions(options)
+                .setMinValues(1)
+                .setMaxValues(10)
         );
     return selectMenuRow;
 }
@@ -634,7 +636,10 @@ function listenToRequestConsole(
                 });
 
             if (submitted) {
-                const role = i.values[0] === 'None of the above' ? initBotInfo.roleIDs.mentorRole : guild.roles.cache.find(role => role.name.toLowerCase() === `M-${i.values[0]}`.toLowerCase()).id;
+                const roles = i.values.map((value) => value === 'None of the above' ? 
+                    initBotInfo.roleIDs.mentorRole : 
+                    guild.roles.cache.find(role => role.name.toLowerCase() === `M-${value}`.toLowerCase()).id
+                );
                 const description = submitted.fields.getTextInputValue('ticketDescription');
                 const location = submitted.fields.getTextInputValue('location');
                 // const helpFormat = submitted.fields.getTextInputValue('helpFormat');
@@ -671,11 +676,12 @@ function listenToRequestConsole(
                 //         .setLabel('Accept ticket (online) - Only use if hackers are OK with it!')
                 //         .setStyle('PRIMARY'),
                 // );
+                const rolesString = roles.map(role => `<@&${role}>`).join(', ');
 
-                const ticketMsg = await incomingTicketsChannel.send({ content: '<@&' + role + '>, requested by <@' + submitted.user.id + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] });
+                const ticketMsg = await incomingTicketsChannel.send({ content: rolesString + ', requested by <@' + submitted.user.id + '>', embeds: [newTicketEmbed], components: [ticketAcceptanceRow] });
                 submitted.reply({ content: 'Your ticket has been submitted!', ephemeral: true });
                 const ticketReminder = setTimeout(() => {
-                    ticketMsg.reply('<@&' + role + '> ticket ' + ticketNumber + ' still needs help!');
+                    ticketMsg.reply(rolesString + ' ticket ' + ticketNumber + ' still needs help!');
                 }, reminderTime * 60000);
 
                 const confirmationEmbed = new MessageEmbed()
