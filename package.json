@@ -32,7 +32,7 @@
     "fs": "0.0.1-security",
     "get-random-emoji": "^1.0.0",
     "mongodb": "^3.7.1",
-    "mongoose": "^5.13.9",
+    "mongoose": "^5.13.15",
     "winston": "^3.3.3"
   },
   "devDependencies": {
