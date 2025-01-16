@@ -74,7 +74,7 @@ class DiscordContests extends Command {
             return;
         }
 
-        if (Object.values(initBotInfo.roleIDs).includes(roleId.id) || Array(initBotInfo.verification.roles).find((r) => r.roleId === roleId.id)) {
+        if (Object.values(initBotInfo.roleIDs).includes(roleId.id) || initBotInfo.verification.roles.some((r) => r.roleId === roleId.id)) {
             interaction.reply({ content: 'This role cannot be used! Please pick a role that is specifically for Discord Contest notifications!', ephemeral: true });
             return;
         }
